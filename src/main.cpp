@@ -18,6 +18,8 @@ BleGamepad bleGamepad;
 #define PIN_DPAD_UP         21
 #define PIN_DPAD_DOWN       19
 
+#define RZ_ANALOG_AXIS      15
+
 
 int pinToButton[TOTAL_BUTTONS]
 {
@@ -58,7 +60,20 @@ void setup()
     pinMode(pinToButton[index], BUTTON_STATE);  
   }
   
-  bleGamepad.begin();
+  pinMode(RZ_ANALOG_AXIS, INPUT);  
+
+  //Controller Configurator
+  BleGamepadConfiguration bleGamepadConfig;
+  bleGamepadConfig.setAutoReport(true);
+  bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
+  bleGamepadConfig.setButtonCount(TOTAL_BUTTONS);
+  //enableX, enableY, enableZ, enableRX, enableRY, enableRZ, enableSlider1, enableSlider2
+  bleGamepadConfig.setWhichAxes(false, false, false, false, false, true, false, false);
+  //enableRudder, enableThrottle, enableAccelerator, enableBrake, enableSteering
+  bleGamepadConfig.setWhichSimulationControls(false, false, false, false, false);
+  bleGamepadConfig.setHatSwitchCount(0);     
+
+  bleGamepad.begin(&bleGamepadConfig);
   // The default bleGamepad.begin() above enables 16 buttons, all axes, one hat, and no simulation controls or special buttons
 }
 
@@ -80,6 +95,10 @@ void loop()
         digitalWrite(LED_BUILTIN, LOW);
       }
     }
-  }
 
+    int rzAxis = analogRead(RZ_ANALOG_AXIS);
+    rzAxis = map(rzAxis,0,4095,-32767,32767);
+    bleGamepad.setRZ(rzAxis);
+  }
+    
 }
